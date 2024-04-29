@@ -192,8 +192,6 @@ const DNDcontext = () => {
                   <Draggable
                     key={item.id}
                     id={item.id}
-                    name={item.name}
-                    containerId={container.id}
                     className="bg-slate-100 px-4 py-4 text-slate-900 border border-slate-600 border-opacity-20 shadow-md rounded-md my-1"
                   >
                     {item.name}
