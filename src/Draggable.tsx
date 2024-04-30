@@ -3,6 +3,7 @@
 import React from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
+import { DotsVerticalIcon } from "@radix-ui/react-icons";
 // import { DragHandleDots2Icon } from "@radix-ui/react-icons";
 
 export function Draggable({
@@ -31,7 +32,7 @@ export function Draggable({
     >
       {children}
       <button {...listeners} {...attributes} className="cursor-move">
-        :
+        <DotsVerticalIcon />
       </button>
     </div>
   );

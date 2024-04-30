@@ -14,11 +14,27 @@ import { Droppable } from "@/Droppable";
 import { Draggable } from "@/Draggable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { TrashIcon } from "@radix-ui/react-icons";
+import { PlusIcon, TrashIcon } from "@radix-ui/react-icons";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 interface Item {
   id: string;
   name: string;
+  content: string;
   containerId: string;
 }
 
@@ -38,14 +54,31 @@ const getInitialContainers = (): Container[] => {
         id: "container1",
         name: "Container 1",
         items: [
-          { id: "item1", name: "Item 1", containerId: "container1" },
-          { id: "item2", name: "Item 2", containerId: "container1" },
+          {
+            id: "item1",
+            name: "Item 1",
+            containerId: "container1",
+            content: "Item 1 content",
+          },
+          {
+            id: "item2",
+            name: "Item 2",
+            containerId: "container1",
+            content: "Item 2 content",
+          },
         ],
       },
       {
         id: "container2",
         name: "Container 2",
-        items: [{ id: "item3", name: "Item 3", containerId: "container2" }],
+        items: [
+          {
+            id: "item3",
+            name: "Item 3",
+            containerId: "container2",
+            content: "Item 3 content",
+          },
+        ],
       },
     ];
   }
@@ -57,6 +90,7 @@ const DNDcontext = () => {
   );
   const [newContainerName, setNewContainerName] = useState("");
   const [newItemName, setNewItemName] = useState("");
+  const [newItemContent, setNewItemContent] = useState("");
 
   const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
 
@@ -116,6 +150,8 @@ const DNDcontext = () => {
 
     setContainersState([...containersState, newContainer]);
     setNewContainerName("");
+    setNewItemContent("");
+    setNewItemName("");
   };
 
   const handleItemSubmit = (containerId: string) => (e: React.FormEvent) => {
@@ -125,6 +161,7 @@ const DNDcontext = () => {
     const newItem: Item = {
       id: `item${Date.now()}`,
       name: newItemName.trim(),
+      content: newItemContent,
       containerId,
     };
 
@@ -146,17 +183,7 @@ const DNDcontext = () => {
   };
 
   return (
-    <div className="w-full h-full mx-4 my-5 ">
-      {/* <form onSubmit={handleContainerSubmit}>
-        <input
-          type="text"
-          value={newContainerName}
-          onChange={(e) => setNewContainerName(e.target.value)}
-          placeholder="Enter container name"
-        />
-        <button type="submit">Add Container</button>
-      </form> */}
-
+    <div className="w-full h-full p-5">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -168,7 +195,7 @@ const DNDcontext = () => {
             <div key={container.id} className="h-full mx-4 ">
               <Droppable
                 id={container.id}
-                className=" w-80 h-full space-y-3 px-5 rounded-md shrink-0 select-none border-r-2 border-slate-800 border-opacity-20"
+                className=" w-80 h-full space-y-3 px-5 rounded-md shrink-0 select-none "
               >
                 <div
                   style={{
@@ -177,15 +204,56 @@ const DNDcontext = () => {
                     alignItems: "center",
                   }}
                 >
-                  <div className="flex items-center justify-between w-full bg-slate-900 text-slate-200 px-2 py-1 rounded-md">
-                    <h1 className="text-lg">{container.name}</h1>
-                    <Button
-                      size={"default"}
-                      variant={"ghost"}
-                      onClick={() => handleDeleteContainer(container.id)}
-                    >
-                      <TrashIcon />
-                    </Button>
+                  <div className="flex items-center justify-between w-full bg-slate-900 text-slate-200 px-1 py-1 rounded-md">
+                    <h1 className="text-lg px-2 capitalize">
+                      {container.name}
+                    </h1>
+                    <div className="flex gap-2 ">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button size={"icon"} variant={"ghost"}>
+                            <PlusIcon />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent>
+                          <form
+                            className="flex gap-3 items-start flex-col w-full"
+                            onSubmit={handleItemSubmit(container.id)}
+                          >
+                            <Label htmlFor="item-name">Item Name</Label>
+                            <Input
+                              id="item-name"
+                              type="text"
+                              value={newItemName}
+                              onChange={(e) => setNewItemName(e.target.value)}
+                              placeholder="Enter item name"
+                            />
+                            <Label htmlFor="item-content">
+                              Item Description
+                            </Label>
+                            <Textarea
+                              value={newItemContent}
+                              onChange={(e) =>
+                                setNewItemContent(e.target.value)
+                              }
+                              id="item-content"
+                              placeholder="Enter your item description"
+                            />
+                            <Button type="submit" className="self-end">
+                              Add Item
+                            </Button>
+                          </form>
+                        </PopoverContent>
+                      </Popover>
+
+                      <Button
+                        size={"icon"}
+                        variant={"ghost"}
+                        onClick={() => handleDeleteContainer(container.id)}
+                      >
+                        <TrashIcon className="h-5 w-5 text-rose-500" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
                 {container.items.map((item) => (
@@ -194,21 +262,23 @@ const DNDcontext = () => {
                     id={item.id}
                     className="bg-slate-100 px-4 py-4 text-slate-900 border border-slate-600 border-opacity-20 shadow-md rounded-md my-1"
                   >
-                    {item.name}
+                    {/* {item.name}
+                    {item.content} */}
+                    <Dialog>
+                      <DialogTrigger className="w-full h-full text-start">
+                        {item.name}
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          {/* <DialogTitle></DialogTitle> */}
+                          <DialogDescription className="text-slate-900 text-lg">
+                            {item.content}
+                          </DialogDescription>
+                        </DialogHeader>
+                      </DialogContent>
+                    </Dialog>
                   </Draggable>
                 ))}
-                <form
-                  className="flex gap-3 items-center"
-                  onSubmit={handleItemSubmit(container.id)}
-                >
-                  <Input
-                    type="text"
-                    value={newItemName}
-                    onChange={(e) => setNewItemName(e.target.value)}
-                    placeholder="Enter item name"
-                  />
-                  <Button type="submit">Add Item</Button>
-                </form>
               </Droppable>
             </div>
           ))}
@@ -222,8 +292,11 @@ const DNDcontext = () => {
               value={newContainerName}
               onChange={(e) => setNewContainerName(e.target.value)}
               placeholder="Enter container name"
+              className="w-fit"
             />
-            <Button type="submit">Add Container</Button>
+            <Button type="submit">
+              <PlusIcon className="w-5 h-5" /> Add
+            </Button>
           </form>
         </div>
       </DndContext>
